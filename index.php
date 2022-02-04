@@ -40,7 +40,6 @@ class buscador_model{
     public function getDataPrestamo($term){
         if($term!=''){
             $conn = getConexion();
-            $arrListado = array();
             $strQuery = " SELECT id,
                                  asociado,
                                  numero,
