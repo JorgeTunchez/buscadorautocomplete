@@ -40,14 +40,16 @@ class buscador_model{
     public function getDataPrestamo($term){
         if($term!=''){
             $conn = getConexion();
-            $strQuery = " SELECT id,
-                                 asociado,
-                                 numero,
-                                 estado_prestamo,
-                                 dias_mora_capital,
-                                 capital_vencido
+            $strQuery = " SELECT prestamo.id,
+                                 asociado.nombres AS nombre_asociado,
+                                 prestamo.numero,
+                                 prestamo.estado_prestamo,
+                                 prestamo.dias_mora_capital,
+                                 prestamo.capital_vencido
                             FROM prestamo
-                           WHERE numero LIKE '%$term%' "; 
+                                 INNER JOIN asociado ON prestamo.asociado = asociado.id
+                           WHERE prestamo.numero LIKE '%$term%' 
+                           ORDER BY prestamo.numero"; 
             $result = mysqli_query($conn, $strQuery);
             if (!empty($result)) {
                 while ($row = mysqli_fetch_assoc($result)) {
@@ -76,7 +78,7 @@ class buscador_view{
             <meta name="description" content="">
             <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
             <meta name="generator" content="Hugo 0.88.1">
-            <title>Buscador Autocomplete</title>
+            <title>Consulta de Prestamos</title>
             <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/navbar-fixed/">
 
             <!-- Bootstrap core CSS -->
@@ -113,14 +115,13 @@ class buscador_view{
         </head>
         <body> 
             <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">Buscador Autocomplete</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Consulta de Prestamos</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarCollapse"></div>
                 </div>
-            </div>
             </nav>
             <main class="container">
             <div class="bg-light p-5 rounded">
@@ -133,12 +134,12 @@ class buscador_view{
                             </div>
                         </div>
                     </div>
-                    <div class="row container">
+                    <div class="row container" id="div_resultado" style="display: none; margin-top:3%">
                         <table class="table table-sm table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID Asociado</th>
                                     <th>Numero Prestamo</th>
+                                    <th>Asociado</th>
                                     <th>Estado</th>
                                     <th>Dias Mora</th>
                                     <th>Capital Vencido</th>
@@ -147,10 +148,10 @@ class buscador_view{
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div id="div_id_asociado"></div>
+                                        <div id="div_id_numero"></div>
                                     </td>
                                     <td>
-                                        <div id="div_id_numero"></div>
+                                        <div id="div_id_asociado"></div>
                                     </td>
                                     <td>
                                         <div id="div_id_estado"></div>
@@ -180,23 +181,30 @@ class buscador_view{
                                     search: request.term
                                 },
                                 success:function(data){
-                                    response($.map(data, function (item) {
-                                        return {
-                                            label: item.asociado,
-                                            value: item.numero,
-                                            asociado: item.asociado,
-                                            numero: item.numero,
-                                            estado_prestamo: item.estado_prestamo,
-                                            dias_mora_capital: item.dias_mora_capital,
-                                            capital_vencido: item.capital_vencido
-                                        }
-                                    }));
+                                    if(data != ''){
+                                        $("#div_resultado").show();
+                                        response($.map(data, function (item) {
+                                            return {
+                                                label: item.numero+' - '+item.nombre_asociado,
+                                                value: item.numero,
+                                                nombre_asociado: item.nombre_asociado,
+                                                numero: item.numero,
+                                                estado_prestamo: item.estado_prestamo,
+                                                dias_mora_capital: item.dias_mora_capital,
+                                                capital_vencido: item.capital_vencido
+                                            }
+                                        }));
+                                    }else{
+                                        $("#div_resultado").hide();
+                                    }
+                                    
                                 }
                             })
                         },
                         minLength: 5,
                         select: function (event, ui) {
-                            $("#div_id_asociado").text(ui.item.asociado);
+                            $("#detalle_auto").val("");
+                            $("#div_id_asociado").text(ui.item.nombre_asociado.toUpperCase());
                             $("#div_id_numero").text(ui.item.numero);
                             $("#div_id_estado").text(ui.item.estado_prestamo);
                             $("#div_id_dias").text(ui.item.dias_mora_capital);
