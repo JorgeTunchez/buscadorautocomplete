@@ -39,7 +39,6 @@ class buscador_model{
 
     public function getDataPrestamo($term){
         if($term!=''){
-            $conn = getConexion();
             $strQuery = " SELECT prestamo.id,
                                  asociado.nombres AS nombre_asociado,
                                  prestamo.numero,
@@ -49,8 +48,8 @@ class buscador_model{
                             FROM prestamo
                                  INNER JOIN asociado ON prestamo.asociado = asociado.id
                            WHERE prestamo.numero LIKE '%$term%' 
-                           ORDER BY prestamo.numero"; 
-            $result = mysqli_query($conn, $strQuery);
+                           ORDER BY prestamo.numero";
+            $result = executeQuery($strQuery);
             if (!empty($result)) {
                 while ($row = mysqli_fetch_assoc($result)) {
                     $resultado[]=$row;

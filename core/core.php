@@ -4,7 +4,6 @@ ini_set('display_errors', 0);
 
 function getConexion()
 {
-
     $servername = "localhost:3308";
     $username = "root";
     $password = "";
@@ -17,4 +16,13 @@ function getConexion()
     }
 }
 
-?>
+function executeQuery($strQuery)
+{
+    if( $strQuery!='' ){
+        $conn = getConexion();
+        $result = mysqli_query($conn, $strQuery);
+        return $result;
+    }else{
+        return false;
+    }
+}
